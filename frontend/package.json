@@ -16,6 +16,7 @@
     "@web3auth/openlogin-adapter": "^8.12.4",
     "bufferutil": "^4.0.8",
     "ethers": "^6.13.2",
+    "jsonwebtoken": "^9.0.2",
     "next": "14.2.7",
     "react": "^18",
     "react-dom": "^18",
@@ -25,6 +26,7 @@
     "web3": "^4.12.1"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
