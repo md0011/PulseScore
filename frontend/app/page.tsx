@@ -1,51 +1,45 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-/* eslint-disable no-console */
 
 "use client";
 
-import { useEffect, useState } from "react";
 import {
+  ADAPTER_EVENTS,
   CHAIN_NAMESPACES,
   IProvider,
-  WALLET_ADAPTERS,
   WEB3AUTH_NETWORK,
 } from "@web3auth/base";
 import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
-import { Web3AuthNoModal } from "@web3auth/no-modal";
-import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
+import { decodeToken, Web3Auth } from "@web3auth/single-factor-auth";
+import { useEffect, useState } from "react";
 import TelegramLoginButton, { TelegramUser } from "telegram-login-button";
-
-import RPC from "./ethersRPC";
-// import RPC from "./viemRPC";
-// import RPC from "./web3RPC";
+import Web3 from "web3";
+import { verifyAndIssueJwt } from "./actions/verify";
+import Hello from "./component/Hello";
+import { ethers, JsonRpcSigner } from "ethers";
 
 const clientId = process.env.NEXT_PUBLIC_CLIENT_ID!; // get from https://dashboard.web3auth.io
 
+const verifier = "ps-app";
+
 const chainConfig = {
   chainNamespace: CHAIN_NAMESPACES.EIP155,
-  chainId: "0xaa36a7",
-  rpcTarget: "https://rpc.ankr.com/eth_sepolia",
-  // Avoid using public rpcTarget in production.
-  // Use services like Infura, Quicknode etc
-  displayName: "Ethereum Sepolia Testnet",
-  blockExplorerUrl: "https://sepolia.etherscan.io",
+  chainId: "0x1", // Please use 0x1 for Mainnet
+  rpcTarget: "https://rpc.ankr.com/eth",
+  displayName: "Ethereum Mainnet",
+  blockExplorer: "https://etherscan.io/",
   ticker: "ETH",
   tickerName: "Ethereum",
-  logo: "https://cryptologos.cc/logos/ethereum-eth-logo.png",
 };
 
 const privateKeyProvider = new EthereumPrivateKeyProvider({
   config: { chainConfig },
 });
 
-const web3auth = new Web3AuthNoModal({
-  clientId,
+const web3auth = new Web3Auth({
+  clientId, // Get your Client ID from Web3Auth Dashboard
   web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
   privateKeyProvider,
 });
-
-const openloginAdapter = new OpenloginAdapter();
-web3auth.configureAdapter(openloginAdapter);
 
 function App() {
   const [provider, setProvider] = useState<IProvider | null>(null);
@@ -57,8 +51,11 @@ function App() {
         await web3auth.init();
         setProvider(web3auth.provider);
 
-        if (web3auth.connected) {
+        if (web3auth.status === ADAPTER_EVENTS.CONNECTED) {
           setLoggedIn(true);
+          const ethersProvider = new ethers.BrowserProvider(web3auth.provider!);
+          const signer = await ethersProvider.getSigner();
+          setSigner(signer);
         }
       } catch (error) {
         console.error(error);
@@ -68,16 +65,24 @@ function App() {
     init();
   }, []);
 
-  const login = async () => {
-    const web3authProvider = await web3auth.connectTo(
-      WALLET_ADAPTERS.OPENLOGIN,
-      {
-        loginProvider: "google",
-      }
-    );
-    setProvider(web3authProvider);
-    if (web3auth.connected) {
+  const login = async (idToken: string, sub: string) => {
+    if (!web3auth) {
+      uiConsole("web3auth initialised yet");
+      return;
+    }
+
+    const web3authProvider = await web3auth.connect({
+      verifier,
+      verifierId: sub,
+      idToken,
+    });
+
+    if (web3authProvider) {
       setLoggedIn(true);
+      setProvider(web3authProvider);
+      const ethersProvider = new ethers.BrowserProvider(web3authProvider);
+      const signer = await ethersProvider.getSigner();
+      setSigner(signer);
     }
   };
 
@@ -93,13 +98,15 @@ function App() {
     uiConsole("logged out");
   };
 
-  // Check the RPC file for the implementation
   const getAccounts = async () => {
     if (!provider) {
       uiConsole("provider not initialized yet");
       return;
     }
-    const address = await RPC.getAccounts(provider);
+    const web3 = new Web3(provider as any);
+
+    // Get user's Ethereum public address
+    const address = await web3.eth.getAccounts();
     uiConsole(address);
   };
 
@@ -108,7 +115,16 @@ function App() {
       uiConsole("provider not initialized yet");
       return;
     }
-    const balance = await RPC.getBalance(provider);
+    const web3 = new Web3(provider as any);
+
+    // Get user's Ethereum public address
+    const address = (await web3.eth.getAccounts())[0];
+
+    // Get user's balance in ether
+    const balance = web3.utils.fromWei(
+      await web3.eth.getBalance(address), // Balance is in wei
+      "ether"
+    );
     uiConsole(balance);
   };
 
@@ -117,31 +133,36 @@ function App() {
       uiConsole("provider not initialized yet");
       return;
     }
-    const signedMessage = await RPC.signMessage(provider);
-    uiConsole(signedMessage);
-  };
+    const web3 = new Web3(provider as any);
 
-  const sendTransaction = async () => {
-    if (!provider) {
-      uiConsole("provider not initialized yet");
-      return;
-    }
-    uiConsole("Sending Transaction...");
-    const transactionReceipt = await RPC.sendTransaction(provider);
-    uiConsole(transactionReceipt);
+    // Get user's Ethereum public address
+    const fromAddress = (await web3.eth.getAccounts())[0];
+
+    const originalMessage = "YOUR_MESSAGE";
+
+    // Sign the message
+    const signedMessage = await web3.eth.personal.sign(
+      originalMessage,
+      fromAddress,
+      "test password!" // configure your own password here.
+    );
+    uiConsole(signedMessage);
   };
 
   function uiConsole(...args: any[]): void {
     const el = document.querySelector("#console>p");
     if (el) {
       el.innerHTML = JSON.stringify(args || {}, null, 2);
-      console.log(...args);
     }
+    console.log(...args);
   }
+
+  const [signer, setSigner] = useState<JsonRpcSigner | null>(null);
 
   const loggedInView = (
     <>
       <div className="flex-container">
+        <div>{signer && <Hello wallet={signer} />}</div>
         <div>
           <button onClick={getUserInfo} className="card">
             Get User Info
@@ -163,11 +184,6 @@ function App() {
           </button>
         </div>
         <div>
-          <button onClick={sendTransaction} className="card">
-            Send Transaction
-          </button>
-        </div>
-        <div>
           <button onClick={logout} className="card">
             Log Out
           </button>
@@ -177,48 +193,21 @@ function App() {
   );
 
   const unloggedInView = (
-    <>
-      <button onClick={login} className="card">
-        Login
-      </button>
-      <TelegramLoginButton
-        botName="PulseScoreBot"
-        dataOnauth={(user: TelegramUser) => console.log(user)}
-      />
-    </>
+    <TelegramLoginButton
+      botName="PulseScoreBot"
+      dataOnauth={async (user: TelegramUser) => {
+        const verify = await verifyAndIssueJwt(user);
+        console.log(verify);
+        if (!verify) throw new Error("No token");
+        login(verify, user.id.toString());
+      }}
+    />
   );
 
   return (
-    <div className="container">
-      <h1 className="title">
-        <a
-          target="_blank"
-          href="https://web3auth.io/docs/sdk/pnp/web/no-modal"
-          rel="noreferrer"
-        >
-          Web3Auth{" "}
-        </a>
-        & NextJS Quick Start
-      </h1>
-
+    <>
       <div className="grid">{loggedIn ? loggedInView : unloggedInView}</div>
-      <div id="console" style={{ whiteSpace: "pre-line" }}>
-        <p style={{ whiteSpace: "pre-line" }}></p>
-      </div>
-
-      <footer className="footer">
-        <a
-          href="https://github.com/Web3Auth/web3auth-pnp-examples/tree/main/web-no-modal-sdk/quick-starts/nextjs-no-modal-quick-start"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Source code
-        </a>
-        <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FWeb3Auth%2Fweb3auth-pnp-examples%2Ftree%2Fmain%2Fweb-modal-sdk%2Fquick-starts%2Fnextjs-modal-quick-start&project-name=w3a-nextjs-modal&repository-name=w3a-nextjs-modal">
-          <img src="https://vercel.com/button" alt="Deploy with Vercel" />
-        </a>
-      </footer>
-    </div>
+    </>
   );
 }
 
