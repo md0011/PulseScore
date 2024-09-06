@@ -23,12 +23,12 @@ const verifier = "ps-app";
 
 const chainConfig = {
   chainNamespace: CHAIN_NAMESPACES.EIP155,
-  chainId: "0x1", // Please use 0x1 for Mainnet
-  rpcTarget: "https://rpc.ankr.com/eth",
-  displayName: "Ethereum Mainnet",
-  blockExplorer: "https://etherscan.io/",
-  ticker: "ETH",
-  tickerName: "Ethereum",
+  chainId: "0x13882", // Please use 0x1 for Mainnet
+  rpcTarget: "https://polygon-amoy.infura.io/v3/ab58dabba09344328d65ade91dc9707f",
+  displayName: "Amoy",
+  blockExplorer: "https://amoy.polygonscan.com/",
+  ticker: "MATIC",
+  tickerName: "Polygon",
 };
 
 const privateKeyProvider = new EthereumPrivateKeyProvider({

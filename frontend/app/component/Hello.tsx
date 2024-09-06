@@ -1,9 +1,10 @@
 import { ethers, JsonRpcSigner } from "ethers";
 import React, { useState, useEffect } from "react";
-import { Scanner } from "@yudiel/react-qr-scanner";
+import { IDetectedBarcode, Scanner } from "@yudiel/react-qr-scanner";
 import { CONTRACT_ABI } from "../abi";
 import Typography from '@mui/material/Typography';
 import Rating from '@mui/material/Rating';
+import {QRCodeSVG} from 'qrcode.react';
 
 type Props = { wallet: JsonRpcSigner };
 
@@ -25,7 +26,7 @@ function PulseScoreApp(p: Props) {
 
       try {
         const avgRating = await contract.getAverageRating(userAddr);
-        setUserRating(avgRating.toNumber());
+        setUserRating(Number(avgRating));
       } catch (err) {
         console.error("Error fetching rating", err);
         setUserRating(0); // If no ratings exist, default to 0
@@ -35,13 +36,12 @@ function PulseScoreApp(p: Props) {
   }, [p.wallet, contract]);
 
   // Handle QR code scan
-  const handleScan = async (result: string | null) => {
+  const handleScan = async (result: IDetectedBarcode[]) => {
     if (result) {
-      setScannedAddress(result);
-
+      setScannedAddress(result[0].rawValue);
       try {
-        const avgRating = await contract.getAverageRating(result);
-        setScannedUserRating(avgRating.toNumber());
+        const avgRating = await contract.getAverageRating(result[0].rawValue);
+        setScannedUserRating(Number(avgRating));
       } catch (err) {
         console.error("Error fetching scanned user's rating", err);
         setScannedUserRating(0); // If no ratings exist, default to 0
@@ -64,7 +64,9 @@ function PulseScoreApp(p: Props) {
 
   return (
     <>
-      <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md">
+      <div className="p-6 max-w-md mx-auto bg-white text-black rounded-xl shadow-md">
+      <QRCodeSVG value={p.wallet.address} />
+      {p.wallet.address} 
         <h1 className="text-2xl font-bold mb-4">PulseScore</h1>
 
         {/* Display user's rating */}
@@ -81,7 +83,7 @@ function PulseScoreApp(p: Props) {
         {/* Scanned user details */}
         {scannedAddress && (
           <>
-            <div className="mb-6">
+            <div className="mb-6 text-black">
               <Typography component="legend">Scanned User Address:</Typography>
               <div className="text-sm break-words">{scannedAddress}</div>
               <Typography component="legend">Scanned User Rating:</Typography>
