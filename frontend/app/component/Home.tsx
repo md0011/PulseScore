@@ -107,7 +107,7 @@ function Home() {
       <div className="flex-container">
       <header className="text-gray-400 bg-gray-900 body-font fixed w-screen z-50 border-b-2 border-b-gray-500">
         <div className="container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center justify-between">
-          <a className="flex title-font font-medium items-center text-white mb-4 md:mb-0">
+          <a className="flex title-font font-medium items-center text-white mb-4 md:mb-0 cursor-pointer">
             <img
               className="w-56 h-10"
               alt="logo"
