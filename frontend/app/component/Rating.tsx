@@ -2,7 +2,6 @@ import { ethers, JsonRpcSigner } from "ethers";
 import React, { useState, useEffect } from "react";
 import { IDetectedBarcode, Scanner } from "@yudiel/react-qr-scanner";
 import { CONTRACT_ABI } from "../abi";
-import Typography from "@mui/material/Typography";
 import Rating from "@mui/material/Rating";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -71,52 +70,52 @@ function PulseScoreApp(p: Props) {
           <div className="flex flex-wrap -mx-4 -mb-10">
             <div className="sm:w-1/2 mb-10 px-4">
               {/* QR Scanner */}
-              <div className="mb-6 max-w-md mx-auto rounded-xl shadow-md">
-                {showScanner && (
-                  <>
-                    <Scanner onScan={handleScan} />
-                    <h2 className="title-font text-2xl font-medium text-white my-6 text-center">
-                      Scan QR Code
-                    </h2>
-                  </>
-                )}
-              </div>
+{showScanner ? (
+  <div className="mb-6 max-w-md mx-auto rounded-xl">
+    <Scanner onScan={handleScan} />
+    <h2 className="title-font text-2xl font-medium text-white my-6 text-center">
+      Scan QR Code
+    </h2>
+  </div>
+) : (
+  <div className="p-6 mx-auto bg-gray-100 text-black rounded-xl shadow-md title-font">
+    <div className="text-black">
+      <div className=" text-2xl font-medium mb-2">
+        Scanned User Details
+      </div>
+      <hr className="border-gray-400" />
+      <div className="text-lg mt-5 text-orange-600 font-bold">
+        Address:  <span className="text-gray-900 font-normal">{scannedAddress}</span>
+      </div>
+      <div className="text-lg my-5 text-orange-600 font-bold">
+        Average Rating: <span className="text-gray-900 font-normal">{scannedUserRating / 5}</span>
+      </div>
+      <hr className="border-gray-400" />
+      {/* Rating input for scanned user */}
+      <div className="text-lg font-semibold mt-5">
+        Tap a star to rate it:
+      </div>
+      <Rating
+        name="simple-controlled"
+        value={ratingValue}
+        onChange={(event, newValue) => setRatingValue(newValue)}
+      /> <br />
+      <button
+        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mt-2"
+        onClick={handleRating}
+      >
+        Submit Rating
+      </button>
+      <button
+        className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded mt-2 float-right"
+        onClick={() => setShowScanner(true)}
+      >
+        Open Scanner
+      </button>
+    </div>
+  </div>
+)}
 
-              {/* Scanned user details */}
-              {scannedAddress && (
-                <>
-                  <div className="p-6 mx-auto bg-gray-100 text-black rounded-xl shadow-md title-font">
-                    <div className="text-black">
-                      <div className=" text-2xl font-medium mb-2">
-                        Scanned User Details
-                      </div>
-                      <hr className="border-gray-400" />
-                      <div className="text-lg mt-5 text-orange-600 font-bold">
-                        Address:  <span className="text-gray-900 font-normal">{scannedAddress}</span>
-                      </div>
-                      <div className="text-lg my-5 text-orange-600 font-bold">
-                        Average Rating: <span className="text-gray-900 font-normal">{scannedUserRating / 5}</span>
-                      </div>
-                    </div>
-                    <hr className="border-gray-400" />
-                    {/* Rating input for scanned user */}
-                    <div className="text-lg font-semibold mt-5">
-                      Tap a star to rate it:
-                    </div>
-                    <Rating
-                      name="simple-controlled"
-                      value={ratingValue}
-                      onChange={(event, newValue) => setRatingValue(newValue)}
-                    /> <br />
-                    <button
-                      className="bg-blue-500 text-white px-4 py-2 rounded mt-2"
-                      onClick={handleRating}
-                    >
-                      Submit Rating
-                    </button>
-                  </div>
-                </>
-              )}
             </div>
 
             <div className="sm:w-1/2 mb-10 px-4 text-right">
