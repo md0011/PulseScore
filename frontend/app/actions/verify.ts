@@ -6,9 +6,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { TelegramUser } from 'telegram-login-button';
 
-// Load the private key from private_key.pem
-const privateKeyPath = path.join(process.cwd(), 'private_key.pem');
-const privateKey = fs.readFileSync(privateKeyPath, 'utf8');
+const privateKey = Buffer.from(process.env.PEM!, 'base64')
 
 // Telegram bot token for verifying the hash
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || 'your-telegram-bot-token';
