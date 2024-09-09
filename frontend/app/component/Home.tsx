@@ -128,7 +128,7 @@ function Home() {
   const unloggedInView = (
     <>
       <section className="text-gray-400 bg-gray-900 body-font flex items-center">
-        <div className="container mx-auto flex px-5 py-16 lg:py-24 flex-wrap-reverse justify-center items-center h-screen">
+        <div className="container mx-auto flex px-5 py-10 lg:py-24 flex-wrap-reverse justify-center items-center h-screen">
           <div className="lg:flex-grow md:w-1/2 flex flex-col md:items-start md:text-left items-center text-center">
             <h1 className="title-font sm:text-4xl text-3xl mb-4 font-medium text-white">
               Decentralized Reputation at Your Fingertips
@@ -150,7 +150,7 @@ function Home() {
               />
             </div>
           </div>
-          <div className="md:w-96 w-60">
+          <div className="md:w-96 w-44">
             <img
               className="object-cover object-center rounded"
               alt="logo"
