@@ -150,7 +150,7 @@ function Home() {
               />
             </div>
           </div>
-          <div className="md:w-96 w-44">
+          <div className="md:w-96 w-60">
             <img
               className="object-cover object-center rounded"
               alt="logo"
