@@ -22,7 +22,7 @@ const chainConfig = {
   chainNamespace: CHAIN_NAMESPACES.EIP155,
   chainId: "0x13882", // Please use 0x1 for Mainnet
   rpcTarget:
-    `https://polygon-amoy.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_ID}`,
+    `https://polygon-amoy.infura.io/v3/${process.env.INFURA_ID}`,
   displayName: "Amoy",
   blockExplorer: "https://amoy.polygonscan.com/",
   ticker: "MATIC",
