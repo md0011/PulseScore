@@ -28,6 +28,7 @@ const chainConfig = {
   ticker: "MATIC",
   tickerName: "Polygon",
 };
+console.log(`INFURA_ID:${process.env.NEXT_PUBLIC_INFURA_ID}`)
 
 const privateKeyProvider = new EthereumPrivateKeyProvider({
   config: { chainConfig },
